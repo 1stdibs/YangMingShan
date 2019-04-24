@@ -40,11 +40,14 @@
     self.tintColor = self.orderTintColor = self.cameraVeilColor = [UIColor systemBlueColor];
     self.orderLabelTextColor = self.navigationBarBackgroundColor = self.cameraIconColor = [UIColor whiteColor];
     self.titleLabelTextColor = [UIColor blackColor];
+    self.videoDurationTextColor = [UIColor whiteColor];
     self.statusBarStyle = UIStatusBarStyleDefault;
     self.titleLabelFont = [UIFont systemFontOfSize:18.0];
     self.albumNameLabelFont = [UIFont systemFontOfSize:18.0 weight:UIFontWeightLight];
     self.photosCountLabelFont = [UIFont systemFontOfSize:18.0 weight:UIFontWeightLight];
     self.selectionOrderLabelFont = [UIFont systemFontOfSize:17.0];
+    self.videoDurationLabelFont = [UIFont systemFontOfSize:17.0 weight:UIFontWeightHeavy];
+
 }
 
 @end

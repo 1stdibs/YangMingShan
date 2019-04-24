@@ -58,6 +58,11 @@
 @property (nonatomic, strong) UIColor *cameraIconColor;
 
 /**
+ * @brief Describe a specify UIColor that you want to apply to the video duration at the bottom left of the video cell.
+ */
+@property (nonatomic, strong) UIColor *videoDurationTextColor;
+
+/**
  * @brief Describe a status bar style that apply on whole picker view controllers. The dafault style is UIStatusBarStyleDefault.
  *
  */
@@ -85,6 +90,12 @@
  * @brief Describe a specify UIFont that you want to apply to the number in the bottom right of photo cells after they're selected, denoting order of selection.
  */
 @property (nonatomic, strong) UIFont *selectionOrderLabelFont;
+
+/**
+ * @brief Describe a specify UIFont that you want to apply to the video duration at the bottom left of the video cell.
+ */
+@property (nonatomic, strong) UIFont *videoDurationLabelFont;
+
 
 /**
  * @brief Getting a shared instance of YMSPhotoPickerTheme.

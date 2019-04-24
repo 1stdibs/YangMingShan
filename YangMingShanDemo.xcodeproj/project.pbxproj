@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		22F307111EA9DDFE00D27109 /* YangMingShan.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFA1F6A1E927DAE00FD8984 /* YangMingShan.framework */; };
 		22F307121EA9DDFE00D27109 /* YangMingShan.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFA1F6A1E927DAE00FD8984 /* YangMingShan.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		2AD53A0D2270D7F5006F24D6 /* YMSVideoCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 2AD53A0A2270D7F5006F24D6 /* YMSVideoCell.h */; };
+		2AD53A0E2270D7F5006F24D6 /* YMSVideoCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 2AD53A0B2270D7F5006F24D6 /* YMSVideoCell.m */; };
+		2AD53A0F2270D7F5006F24D6 /* YMSVideoCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 2AD53A0C2270D7F5006F24D6 /* YMSVideoCell.xib */; };
 		3EFA1F6E1E927DAE00FD8984 /* YangMingShan.h in Headers */ = {isa = PBXBuildFile; fileRef = 3EFA1F6C1E927DAE00FD8984 /* YangMingShan.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3EFA1F711E927DAE00FD8984 /* YangMingShan.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFA1F6A1E927DAE00FD8984 /* YangMingShan.framework */; };
 		3EFA1F721E927DAE00FD8984 /* YangMingShan.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 3EFA1F6A1E927DAE00FD8984 /* YangMingShan.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -119,6 +122,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2AD53A0A2270D7F5006F24D6 /* YMSVideoCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = YMSVideoCell.h; path = Private/YMSVideoCell.h; sourceTree = "<group>"; };
+		2AD53A0B2270D7F5006F24D6 /* YMSVideoCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = YMSVideoCell.m; path = Private/YMSVideoCell.m; sourceTree = "<group>"; };
+		2AD53A0C2270D7F5006F24D6 /* YMSVideoCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = YMSVideoCell.xib; path = Private/YMSVideoCell.xib; sourceTree = "<group>"; };
 		3EFA1F6A1E927DAE00FD8984 /* YangMingShan.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = YangMingShan.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3EFA1F6C1E927DAE00FD8984 /* YangMingShan.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = YangMingShan.h; path = YangMingShan/YangMingShan.h; sourceTree = "<group>"; };
 		3EFA1F6D1E927DAE00FD8984 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = YangMingShan/Info.plist; sourceTree = "<group>"; };
@@ -360,6 +366,9 @@
 				513073281D1B8D9000C98705 /* YMSPhotoCell.h */,
 				513073291D1B8D9000C98705 /* YMSPhotoCell.m */,
 				5130732A1D1B8D9000C98705 /* YMSPhotoCell.xib */,
+				2AD53A0A2270D7F5006F24D6 /* YMSVideoCell.h */,
+				2AD53A0B2270D7F5006F24D6 /* YMSVideoCell.m */,
+				2AD53A0C2270D7F5006F24D6 /* YMSVideoCell.xib */,
 				5130732B1D1B8D9000C98705 /* YMSSinglePhotoViewController.h */,
 				5130732C1D1B8D9000C98705 /* YMSSinglePhotoViewController.m */,
 				5130732D1D1B8D9000C98705 /* YMSSinglePhotoViewController.xib */,
@@ -406,6 +415,7 @@
 				3EFA1F6E1E927DAE00FD8984 /* YangMingShan.h in Headers */,
 				3EFA1FC01E92824600FD8984 /* UIViewController+YMSPhotoHelper.h in Headers */,
 				3EFA1FC11E92824600FD8984 /* YMSPhotoPickerTheme.h in Headers */,
+				2AD53A0D2270D7F5006F24D6 /* YMSVideoCell.h in Headers */,
 				3EFA1FC31E92829000FD8984 /* UIScrollView+YMSAdditions.h in Headers */,
 				3EFA1FC41E92829000FD8984 /* UITableViewCell+YMSConfig.h in Headers */,
 				3EFA1FC51E92829000FD8984 /* YMSAlbumCell.h in Headers */,
@@ -572,6 +582,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3EFA1FDE1E92845300FD8984 /* YMSPhotoPickerViewController.xib in Resources */,
+				2AD53A0F2270D7F5006F24D6 /* YMSVideoCell.xib in Resources */,
 				3EFA1FDF1E92845300FD8984 /* YMSAlbumCell.xib in Resources */,
 				3EFA1FE01E92845300FD8984 /* YMSAlbumPickerViewController.xib in Resources */,
 				3EFA1FE11E92845300FD8984 /* YMSCameraCell.xib in Resources */,
@@ -629,6 +640,7 @@
 				3EFA1FD61E92844B00FD8984 /* UITableViewCell+YMSConfig.m in Sources */,
 				3EFA1FD71E92844B00FD8984 /* YMSPhotoPickerTheme.m in Sources */,
 				3EFA1FD81E92844B00FD8984 /* YMSPhotoPickerViewController.m in Sources */,
+				2AD53A0E2270D7F5006F24D6 /* YMSVideoCell.m in Sources */,
 				3EFA1FD91E92844B00FD8984 /* YMSAlbumCell.m in Sources */,
 				897897DD1F7F72920054FB81 /* YMSNavigationController.m in Sources */,
 				3EFA1FDA1E92844B00FD8984 /* YMSAlbumPickerViewController.m in Sources */,
