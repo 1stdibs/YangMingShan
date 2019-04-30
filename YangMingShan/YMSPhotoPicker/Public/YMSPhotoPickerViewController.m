@@ -62,6 +62,7 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
         self.selectedPhotos = [NSMutableArray array];
         self.numberOfPhotoToSelect = 1;
         self.shouldReturnImageForSingleSelection = YES;
+        self.isSinglePhotoPreviewEnabled = YES;
     }
     return self;
 }
@@ -212,7 +213,9 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
     
     [photoCell loadPhotoWithManager:self.imageManager forAsset:asset targetSize:imageSize];
 
-    [photoCell.longPressGestureRecognizer addTarget:self action:@selector(presentSinglePhoto:)];
+    if (self.isSinglePhotoPreviewEnabled) {
+        [photoCell.longPressGestureRecognizer addTarget:self action:@selector(presentSinglePhoto:)];
+    }
 
     if ([self.selectedPhotos containsObject:asset]) {
         NSUInteger selectionIndex = [self.selectedPhotos indexOfObject:asset];

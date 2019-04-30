@@ -46,7 +46,8 @@
     self.albumNameLabelFont = [UIFont systemFontOfSize:18.0 weight:UIFontWeightLight];
     self.photosCountLabelFont = [UIFont systemFontOfSize:18.0 weight:UIFontWeightLight];
     self.selectionOrderLabelFont = [UIFont systemFontOfSize:17.0];
-    self.videoDurationLabelFont = [UIFont systemFontOfSize:17.0 weight:UIFontWeightHeavy];
+    self.videoDurationLabelFont = [UIFont systemFontOfSize:12.0 weight:UIFontWeightHeavy];
+    self.videoCellDetailViewColor = [UIColor blackColor];
 
 }
 

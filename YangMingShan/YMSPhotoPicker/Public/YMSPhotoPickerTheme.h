@@ -96,6 +96,11 @@
  */
 @property (nonatomic, strong) UIFont *videoDurationLabelFont;
 
+/**
+ * @brief Describe a specify UIColor that you want to apply to the video duration at the of the video cell.
+ */
+@property (nonatomic, strong) UIColor *videoCellDetailViewColor;
+
 
 /**
  * @brief Getting a shared instance of YMSPhotoPickerTheme.

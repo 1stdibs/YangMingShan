@@ -58,6 +58,12 @@ typedef NS_ENUM(NSUInteger, YMSPhotoPickerSourceType) {
  */
 @property (nonatomic, assign) YMSPhotoPickerSourceType sourceType;
 
+/**
+ * @brief If enabled, allows the long press gesture to present the Single Photo Preview screen. Defaults to YES.
+ *
+ */
+@property (nonatomic, assign) BOOL isSinglePhotoPreviewEnabled;
+
 @end
 
 /**

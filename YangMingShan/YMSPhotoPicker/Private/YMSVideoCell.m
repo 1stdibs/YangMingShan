@@ -12,6 +12,7 @@
 @interface YMSVideoCell ()
 
 @property (weak, nonatomic) IBOutlet UILabel *videoDurationLabel;
+@property (weak, nonatomic) IBOutlet UIView *videoDetailView;
 
 @end
 
@@ -21,8 +22,8 @@
     [super awakeFromNib];
 
     self.videoDurationLabel.textColor = [YMSPhotoPickerTheme sharedInstance].videoDurationTextColor;
-    self.videoDurationLabel.font = [YMSPhotoPickerTheme sharedInstance].selectionOrderLabelFont;
-
+    self.videoDurationLabel.font = [YMSPhotoPickerTheme sharedInstance].videoDurationLabelFont;
+    self.videoDetailView.backgroundColor = [YMSPhotoPickerTheme sharedInstance].videoCellDetailViewColor;
 }
 
 - (void)loadPhotoWithManager:(PHImageManager *)manager forAsset:(PHAsset *)asset targetSize:(CGSize)size
