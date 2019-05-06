@@ -21,7 +21,7 @@
  *
  * @param delegate The UIImagePickerController delegate
  */
-- (void)yms_presentCameraCaptureViewWithDelegate:(id<UIImagePickerControllerDelegate, UINavigationControllerDelegate>)delegate;
+- (void)yms_presentCameraCaptureViewWithDelegate:(id<UIImagePickerControllerDelegate, UINavigationControllerDelegate>)delegate pickerSourceType:(YMSPhotoPickerSourceType)pickerSourceType;
 
 /**
  * @brief Prsent default YMSPhotoPickerViewController with delegate. You can only pick single photo with this function. Implement YMSPhotoPickerViewControllerDelegate to get callbacks from YMSPhotoPickerViewController.

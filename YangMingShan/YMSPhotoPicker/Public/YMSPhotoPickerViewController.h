@@ -64,6 +64,10 @@ typedef NS_ENUM(NSUInteger, YMSPhotoPickerSourceType) {
  */
 @property (nonatomic, assign) BOOL isSinglePhotoPreviewEnabled;
 
++(NSSet<NSString*>*)videoUTITypes;
++(NSSet<NSString*>*)imageUTITypes;
++(NSArray<NSString*>*)availableMediaTypesFilteredByPickerSourceType:(YMSPhotoPickerSourceType)pickerSourceType;
+
 @end
 
 /**
