@@ -8,18 +8,21 @@
 
 #import "YMSPhotoPickerViewController.h"
 
-#import <Photos/Photos.h>
+@import Photos;
+@import MobileCoreServices;
 
 #import "UIScrollView+YMSAdditions.h"
 #import "UIViewController+YMSPhotoHelper.h"
 #import "YMSAlbumPickerViewController.h"
 #import "YMSCameraCell.h"
-#import "YMSNavigationController.h"
 #import "YMSPhotoCell.h"
+#import "YMSVideoCell.h"
+#import "YMSNavigationController.h"
 #import "YMSSinglePhotoViewController.h"
 
 static NSString * const YMSCameraCellNibName = @"YMSCameraCell";
 static NSString * const YMSPhotoCellNibName = @"YMSPhotoCell";
+static NSString * const YMSVideoCellNibName = @"YMSVideoCell";
 static const NSUInteger YMSNumberOfPhotoColumns = 3;
 static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 
@@ -56,9 +59,11 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 {
     self = [super initWithNibName:NSStringFromClass(self.class) bundle:[NSBundle bundleForClass:self.class]];
     if (self) {
+        self.sourceType = YMSPhotoPickerSourceTypePhoto;
         self.selectedPhotos = [NSMutableArray array];
         self.numberOfPhotoToSelect = 1;
         self.shouldReturnImageForSingleSelection = YES;
+        self.isSinglePhotoPreviewEnabled = YES;
     }
     return self;
 }
@@ -79,6 +84,8 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
     [self.photoCollectionView registerNib:cellNib forCellWithReuseIdentifier:YMSCameraCellNibName];
     cellNib = [UINib nibWithNibName:YMSPhotoCellNibName bundle:[NSBundle bundleForClass:YMSPhotoCell.class]];
     [self.photoCollectionView registerNib:cellNib forCellWithReuseIdentifier:YMSPhotoCellNibName];
+    cellNib = [UINib nibWithNibName:YMSVideoCellNibName bundle:[NSBundle bundleForClass:YMSVideoCell.class]];
+    [self.photoCollectionView registerNib:cellNib forCellWithReuseIdentifier:YMSVideoCellNibName];
     self.photoCollectionView.allowsMultipleSelection = self.allowsMultipleSelection;
 
     [self fetchCollections];
@@ -180,13 +187,26 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
         }
         
         return cameraCell;
-    }    
+    }
     
-    YMSPhotoCell *photoCell = [collectionView dequeueReusableCellWithReuseIdentifier:YMSPhotoCellNibName forIndexPath:indexPath];
-
     PHFetchResult *fetchResult = self.currentCollectionItem[@"assets"];
-    
     PHAsset *asset = fetchResult[indexPath.item-1];
+    
+    YMSPhotoCell *photoCell;
+    switch (asset.mediaType) {
+        case PHAssetMediaTypeImage:
+            photoCell = [collectionView dequeueReusableCellWithReuseIdentifier:YMSPhotoCellNibName forIndexPath:indexPath];
+            break;
+        case PHAssetMediaTypeVideo:
+            photoCell = [collectionView dequeueReusableCellWithReuseIdentifier:YMSVideoCellNibName forIndexPath:indexPath];
+            break;
+        case PHAssetMediaTypeAudio:
+        case PHAssetMediaTypeUnknown:
+            assert("Unsupported media type provided!");
+            photoCell = [collectionView dequeueReusableCellWithReuseIdentifier:YMSPhotoCellNibName forIndexPath:indexPath];
+            break;
+    }
+    
     photoCell.representedAssetIdentifier = asset.localIdentifier;
     
     CGFloat scale = [UIScreen mainScreen].scale * YMSPhotoFetchScaleResizingRatio;
@@ -194,7 +214,9 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
     
     [photoCell loadPhotoWithManager:self.imageManager forAsset:asset targetSize:imageSize];
 
-    [photoCell.longPressGestureRecognizer addTarget:self action:@selector(presentSinglePhoto:)];
+    if (self.isSinglePhotoPreviewEnabled) {
+        [photoCell.longPressGestureRecognizer addTarget:self action:@selector(presentSinglePhoto:)];
+    }
 
     if ([self.selectedPhotos containsObject:asset]) {
         NSUInteger selectionIndex = [self.selectedPhotos indexOfObject:asset];
@@ -231,7 +253,7 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
     if (indexPath.row == 0) {
-        [self yms_presentCameraCaptureViewWithDelegate:self];
+        [self yms_presentCameraCaptureViewWithDelegate:self pickerSourceType:self.sourceType];
     }
     else if (NO == self.allowsMultipleSelection) {
         if (NO == self.shouldReturnImageForSingleSelection) {
@@ -358,8 +380,8 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 
 - (IBAction)finishPickingPhotos:(id)sender
 {
-    if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingImages:)]) {
-        [self.delegate photoPickerViewController:self didFinishPickingImages:[self.selectedPhotos copy]];
+    if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingMedia:)]) {
+        [self.delegate photoPickerViewController:self didFinishPickingMedia:[self.selectedPhotos copy]];
     }
     else {
         [self dismiss:nil];
@@ -404,39 +426,142 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
         if (![self.session isRunning]) {
             [self.photoCollectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:0 inSection:0]]];
         }
-
-        UIImage *image = [info objectForKey:@"UIImagePickerControllerOriginalImage"];
-        if (![image isKindOfClass:[UIImage class]]) {
+        
+        NSString* mediaType = [info objectForKey:UIImagePickerControllerMediaType];
+        if (![mediaType isKindOfClass:[NSString class]]) {
             return;
         }
-
-        // Save the image to Photo Album
-        [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
-            PHAssetCollection *collection = self.currentCollectionItem[@"collection"];
-            if (collection.assetCollectionType == PHAssetCollectionTypeSmartAlbum) {
-                // Cannot save to smart albums other than "all photos", pick it and dismiss
-                [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-            }
-            else {
-                PHAssetChangeRequest *assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
-                PHObjectPlaceholder *placeholder = [assetRequest placeholderForCreatedAsset];
-                PHAssetCollectionChangeRequest *albumChangeRequest = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:collection assets:self.currentCollectionItem[@"assets"]];
-                [albumChangeRequest addAssets:@[placeholder]];
-            }
-        } completionHandler:^(BOOL success, NSError *error) {
-            if (success) {
-                self.needToSelectFirstPhoto = YES;
-            }
-
-            if (!self.allowsMultipleSelection) {
-                if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingImage:)]) {
-                    [self.delegate photoPickerViewController:self didFinishPickingImage:image];
+        
+        NSURL *mediaURL;
+        
+        if ([[self.class imageUTITypes] containsObject:mediaType]) {
+            if (@available(iOS 11.0, *)) {
+                mediaURL = [info objectForKey:UIImagePickerControllerImageURL];
+                if (mediaURL == nil || ![mediaURL isKindOfClass:[NSURL class]]) {
+                    [self handleImagePickedWithInfo:info];
+                    return;
                 }
-                else {
-                    [self dismiss:nil];
+                [self handleMediaWithURL:mediaURL mediaType:mediaType completion:^(PHAsset *asset, NSError *error) {
+                    if (error == nil) {
+                        self.needToSelectFirstPhoto = YES;
+                    }
+                    
+                    if (asset == nil) {
+                        return;
+                    }
+                    
+                    if (!self.allowsMultipleSelection) {
+                        if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingMedia:)]) {
+                            [self.delegate photoPickerViewController:self didFinishPickingMedia:@[asset]];
+                        }
+                        else {
+                            [self dismiss:nil];
+                        }
+                    }
+                }];
+                
+            } else {
+                [self handleImagePickedWithInfo:info];
+            }
+
+        } else if ([[self.class videoUTITypes] containsObject:mediaType]) {
+            mediaURL = [info objectForKey:UIImagePickerControllerMediaURL];
+            if (![mediaURL isKindOfClass:[NSURL class]]) {
+                return;
+            }
+            [self handleMediaWithURL:mediaURL mediaType:mediaType completion:^(PHAsset *asset, NSError *error) {
+                if (error == nil) {
+                    self.needToSelectFirstPhoto = YES;
+                }
+                
+                if (asset == nil) {
+                    return;
+                }
+        
+                if (!self.allowsMultipleSelection) {
+                    if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingMedia:)]) {
+                        [self.delegate photoPickerViewController:self didFinishPickingMedia:@[asset]];
+                    }
+                    else {
+                        [self dismiss:nil];
+                    }
+                }
+            }];
+            
+        } else {
+            NSLog(@"%@ %@", @"unrecognized media type picked from UIImagePickerController:", info);
+        }
+    }];
+}
+
+-(PHAssetMediaType)assetMediaTypeForUTIMediaType:(NSString*)mediaType {
+    if ([[self.class imageUTITypes] containsObject:mediaType]) {
+        return PHAssetMediaTypeImage;
+    } else if ([[self.class videoUTITypes] containsObject:mediaType]) {
+        return PHAssetMediaTypeVideo;
+    } else {
+        return PHAssetMediaTypeUnknown;
+    }
+}
+
+-(PHAssetChangeRequest*)assetChangeRequestForUTIMediaType:(NSString*)mediaType fileURL:(NSURL*)url {
+    if ([[self.class imageUTITypes] containsObject:mediaType]) {
+        return [PHAssetChangeRequest creationRequestForAssetFromImageAtFileURL:url];
+        
+    } else if ([[self.class videoUTITypes] containsObject:mediaType]) {
+        return [PHAssetChangeRequest creationRequestForAssetFromVideoAtFileURL:url];
+        
+    } else {
+        return nil;
+    }
+}
+
+-(void)handleMediaWithURL:(NSURL*)url mediaType:(NSString*)mediaType completion:(void (^)(PHAsset* asset, NSError* error))completion {
+    
+    PHAssetMediaType type = [self assetMediaTypeForUTIMediaType:mediaType];
+    
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        PHAssetCollection *collection = self.currentCollectionItem[@"collection"];
+        if (collection.assetCollectionType == PHAssetCollectionTypeSmartAlbum) {
+            // Cannot save to smart albums other than "all photos", pick it and dismiss
+            PHAssetChangeRequest *assetRequest = [self assetChangeRequestForUTIMediaType:mediaType fileURL:url];
+            if (assetRequest == nil) {
+                completion(nil, [NSError errorWithDomain:@"YMS: unsupported media type returned from UIImagePickerController" code:1 userInfo:nil]);
+                return;
+            }
+
+        }
+        else {
+            PHAssetChangeRequest *assetRequest = [self assetChangeRequestForUTIMediaType:mediaType fileURL:url];
+            if (assetRequest == nil) {
+                completion(nil, [NSError errorWithDomain:@"YMS: unsupported media type returned from UIImagePickerController" code:1 userInfo:nil]);
+                return;
+            }
+            
+            PHObjectPlaceholder *placeholder = [assetRequest placeholderForCreatedAsset];
+            PHAssetCollectionChangeRequest *albumChangeRequest = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:collection assets:self.currentCollectionItem[@"assets"]];
+            [albumChangeRequest addAssets:@[placeholder]];
+        }
+    } completionHandler:^(BOOL success, NSError * _Nullable error) {
+        PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
+        //set up fetch options, mediaType is image.
+        PHFetchOptions *options = [[PHFetchOptions alloc] init];
+        options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
+        options.predicate = [NSPredicate predicateWithFormat:@"mediaType = %d",type];
+
+        for (NSInteger i =0; i < smartAlbums.count; i++) {
+            PHAssetCollection *assetCollection = smartAlbums[i];
+            PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:options];
+
+            NSLog(@"sub album title is %@, count is %ld", assetCollection.localizedTitle, assetsFetchResult.count);
+            if (assetsFetchResult.count > 0) {
+                for (PHAsset *asset in assetsFetchResult) {
+                    completion(asset, nil);
+                    return;
                 }
             }
-        }];
+        }
+        completion(nil, [NSError errorWithDomain:@"YMS: no asset found" code:3 userInfo:nil]);
     }];
 }
 
@@ -448,6 +573,41 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
         // Enable camera preview when user allow it first time
         if (![self.session isRunning]) {
             [self.photoCollectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:0 inSection:0]]];
+        }
+    }];
+}
+
+-(void)handleImagePickedWithInfo:(NSDictionary*)info {
+    UIImage *image = [info objectForKey:UIImagePickerControllerOriginalImage];
+    if (![image isKindOfClass:[UIImage class]]) {
+        return;
+    }
+    
+    // Save the image to Photo Album
+    [[PHPhotoLibrary sharedPhotoLibrary] performChanges:^{
+        PHAssetCollection *collection = self.currentCollectionItem[@"collection"];
+        if (collection.assetCollectionType == PHAssetCollectionTypeSmartAlbum) {
+            // Cannot save to smart albums other than "all photos", pick it and dismiss
+            [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+        }
+        else {
+            PHAssetChangeRequest *assetRequest = [PHAssetChangeRequest creationRequestForAssetFromImage:image];
+            PHObjectPlaceholder *placeholder = [assetRequest placeholderForCreatedAsset];
+            PHAssetCollectionChangeRequest *albumChangeRequest = [PHAssetCollectionChangeRequest changeRequestForAssetCollection:collection assets:self.currentCollectionItem[@"assets"]];
+            [albumChangeRequest addAssets:@[placeholder]];
+        }
+    } completionHandler:^(BOOL success, NSError *error) {
+        if (success) {
+            self.needToSelectFirstPhoto = YES;
+        }
+        
+        if (!self.allowsMultipleSelection) {
+            if ([self.delegate respondsToSelector:@selector(photoPickerViewController:didFinishPickingImage:)]) {
+                [self.delegate photoPickerViewController:self didFinishPickingImage:image];
+            }
+            else {
+                [self dismiss:nil];
+            }
         }
     }];
 }
@@ -523,6 +683,18 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
             || self.numberOfPhotoToSelect == 0);
 }
 
+-(NSPredicate*)mediaTypePredicateForSourceType:(YMSPhotoPickerSourceType)sourceType {
+    switch (sourceType) {
+        case YMSPhotoPickerSourceTypePhoto:
+            return [NSPredicate predicateWithFormat:@"mediaType = %d",PHAssetMediaTypeImage];
+        case YMSPhotoPickerSourceTypeVideo:
+            return [NSPredicate predicateWithFormat:@"mediaType = %d", PHAssetMediaTypeVideo];
+        case YMSPhotoPickerSourceTypeBoth:
+            return [NSPredicate predicateWithFormat:@"mediaType = %d || mediaType = %d",PHAssetMediaTypeImage, PHAssetMediaTypeVideo];
+    }
+}
+
+
 - (void)fetchCollections
 {
     NSMutableArray *allAblums = [NSMutableArray array];
@@ -534,7 +706,8 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
     weakFetchAlbums = fetchAlbums = ^void(PHFetchResult *collections) {
         // create fecth options
         PHFetchOptions *options = [PHFetchOptions new];
-        options.predicate = [NSPredicate predicateWithFormat:@"mediaType = %d",PHAssetMediaTypeImage];
+        
+        options.predicate = [self mediaTypePredicateForSourceType:self.sourceType];
         options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
 
         for (PHCollection *collection in collections) {
@@ -560,7 +733,7 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 
     for (PHAssetCollection *collection in smartAlbums) {
         PHFetchOptions *options = [PHFetchOptions new];
-        options.predicate = [NSPredicate predicateWithFormat:@"mediaType = %d",PHAssetMediaTypeImage];
+        options.predicate = [self mediaTypePredicateForSourceType:self.sourceType];
         options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
 
         PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:collection options:options];
@@ -710,6 +883,52 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
             }];
         }
     });
+}
+
+
++(NSSet<NSString*>*)videoUTITypes {
+    return [NSSet setWithArray:@[
+                                 (__bridge NSString *)kUTTypeVideo,
+                                 (__bridge NSString *)kUTTypeAudiovisualContent,
+                                 (__bridge NSString *)kUTTypeMovie,
+                                 (__bridge NSString *)kUTTypeQuickTimeMovie,
+                                 (__bridge NSString *)kUTTypeMPEG,
+                                 (__bridge NSString *)kUTTypeMPEG4
+                                 ]];
+}
+
++(NSSet<NSString*>*)imageUTITypes {
+    return [NSSet setWithArray:@[
+                                 
+                                 (__bridge NSString *)kUTTypeImage,
+                                 (__bridge NSString *)kUTTypeJPEG,
+                                 (__bridge NSString *)kUTTypeJPEG2000,
+                                 (__bridge NSString *)kUTTypeTIFF,
+                                 (__bridge NSString *)kUTTypeGIF,
+                                 (__bridge NSString *)kUTTypePNG,
+                                 (__bridge NSString *)kUTTypeQuickTimeImage
+                                 ]];
+}
+
+
++(NSArray<NSString*>*)availableMediaTypesFilteredByPickerSourceType:(YMSPhotoPickerSourceType)pickerSourceType {
+    NSMutableSet<NSString*>* allAvailableMediaTypes = [NSMutableSet setWithArray:[UIImagePickerController availableMediaTypesForSourceType:UIImagePickerControllerSourceTypeCamera]];
+    
+    switch (pickerSourceType) {
+        case YMSPhotoPickerSourceTypePhoto:
+            [allAvailableMediaTypes intersectSet:[self.class imageUTITypes]];
+            return [allAvailableMediaTypes copy];
+            
+        case YMSPhotoPickerSourceTypeVideo:
+            [allAvailableMediaTypes intersectSet:[self.class videoUTITypes]];
+            return [allAvailableMediaTypes copy];
+            
+        case YMSPhotoPickerSourceTypeBoth:{
+            NSSet* both = [[self.class imageUTITypes] setByAddingObjectsFromSet:[self.class videoUTITypes]];
+            [allAvailableMediaTypes intersectSet:both];
+            return [allAvailableMediaTypes copy];
+        }
+    }
 }
 
 @end

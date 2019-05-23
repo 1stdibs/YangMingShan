@@ -40,5 +40,7 @@
 	<string>The photo library is used to select photos</string>
 	<key>NSCameraUsageDescription</key>
 	<string>The camera is used to take a new photo</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>The microphone is used when recording videos with audio</string>
 </dict>
 </plist>

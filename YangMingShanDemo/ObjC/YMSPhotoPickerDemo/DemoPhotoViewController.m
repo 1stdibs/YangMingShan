@@ -47,7 +47,8 @@ static NSString * const CellIdentifier = @"imageCellIdentifier";
         // Custom selection number
         YMSPhotoPickerViewController *pickerViewController = [[YMSPhotoPickerViewController alloc] init];
         pickerViewController.numberOfPhotoToSelect = [numberOfPhotoSelectionString integerValue];
-
+        pickerViewController.sourceType = YMSPhotoPickerSourceTypeBoth;
+        
         UIColor *customColor = [UIColor colorWithRed:248.0/255.0 green:217.0/255.0 blue:44.0/255.0 alpha:1.0];
 
         pickerViewController.theme.titleLabelTextColor = [UIColor blackColor];
@@ -117,7 +118,7 @@ static NSString * const CellIdentifier = @"imageCellIdentifier";
     }];
 }
 
-- (void)photoPickerViewController:(YMSPhotoPickerViewController *)picker didFinishPickingImages:(NSArray *)photoAssets
+- (void)photoPickerViewController:(YMSPhotoPickerViewController *)picker didFinishPickingMedia:(NSArray<PHAsset *> *)mediaAssets
 {
     [picker dismissViewControllerAnimated:YES completion:^() {
 
@@ -131,7 +132,7 @@ static NSString * const CellIdentifier = @"imageCellIdentifier";
 
         NSMutableArray *mutableImages = [NSMutableArray array];
 
-        for (PHAsset *asset in photoAssets) {
+        for (PHAsset *asset in mediaAssets) {
             CGSize targetSize = CGSizeMake((CGRectGetWidth(self.collectionView.bounds) - 20*2) * [UIScreen mainScreen].scale, (CGRectGetHeight(self.collectionView.bounds) - 20*2) * [UIScreen mainScreen].scale);
             [imageManager requestImageForAsset:asset targetSize:targetSize contentMode:PHImageContentModeAspectFill options:options resultHandler:^(UIImage *image, NSDictionary *info) {
                 [mutableImages addObject:image];

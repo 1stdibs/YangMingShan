@@ -22,7 +22,8 @@ class DemoPhotoViewController: UIViewController, YMSPhotoPickerViewControllerDel
             let pickerViewController = YMSPhotoPickerViewController.init()
 
             pickerViewController.numberOfPhotoToSelect = UInt(self.numberOfPhotoSelectionTextField.text!)!
-
+            pickerViewController.sourceType = .both;
+            
             let customColor = UIColor.init(red:248.0/255.0, green:217.0/255.0, blue:44.0/255.0, alpha:1.0)
 
             pickerViewController.theme.titleLabelTextColor = UIColor.black
@@ -93,7 +94,7 @@ class DemoPhotoViewController: UIViewController, YMSPhotoPickerViewControllerDel
         }
     }
 
-    func photoPickerViewController(_ picker: YMSPhotoPickerViewController!, didFinishPickingImages photoAssets: [PHAsset]!) {
+    func photoPickerViewController(_ picker: YMSPhotoPickerViewController!, didFinishPickingMedia mediaAssets: [PHAsset]!) {
 
         picker.dismiss(animated: true) {
             let imageManager = PHImageManager.init()

@@ -11,6 +11,16 @@
 
 #import "YMSPhotoPickerTheme.h"
 
+/**
+ * These are the available source types the photo picker will allow the user to select.
+ */
+typedef NS_ENUM(NSUInteger, YMSPhotoPickerSourceType) {
+    YMSPhotoPickerSourceTypePhoto,
+    YMSPhotoPickerSourceTypeVideo,
+    YMSPhotoPickerSourceTypeBoth
+};
+
+
 @protocol YMSPhotoPickerViewControllerDelegate;
 
 /**
@@ -41,6 +51,22 @@
  *  @brief Use this property to customize the returned item type for single selection. YES for UIImage, NO for PHAsset. Default value is YES.
  */
 @property (nonatomic, assign) BOOL shouldReturnImageForSingleSelection;
+
+/**
+ * @brief Describe the type of medias that the user will be allowed to choose from. Defaults to YMSPhotoPickerSourceTypePhoto.
+ *
+ */
+@property (nonatomic, assign) YMSPhotoPickerSourceType sourceType;
+
+/**
+ * @brief If enabled, allows the long press gesture to present the Single Photo Preview screen. Defaults to YES.
+ *
+ */
+@property (nonatomic, assign) BOOL isSinglePhotoPreviewEnabled;
+
++(NSSet<NSString*>*)videoUTITypes;
++(NSSet<NSString*>*)imageUTITypes;
++(NSArray<NSString*>*)availableMediaTypesFilteredByPickerSourceType:(YMSPhotoPickerSourceType)pickerSourceType;
 
 @end
 
@@ -78,9 +104,9 @@
  * @brief Invoked when user press done button with greater than or equal to one image(s) from camera or photo album. The picker does not dismiss itself; the client dismisses it in this callback.
  *
  * @param picker The view controller invoking the delegate method.
- * @param photoAssets The NSArray object contains PHAsset object(s) user picked.
+ * @param mediaAssets The NSArray object contains PHAsset object(s) user picked.
  */
-- (void)photoPickerViewController:(YMSPhotoPickerViewController *)picker didFinishPickingImages:(NSArray<PHAsset*> *)photoAssets;
+- (void)photoPickerViewController:(YMSPhotoPickerViewController *)picker didFinishPickingMedia:(NSArray<PHAsset*> *)mediaAssets;
 
 /**
  * @brief Invoked when user press cancel button. The picker does not dismiss itself; the client dismisses it in this callback.

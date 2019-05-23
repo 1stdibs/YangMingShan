@@ -10,12 +10,14 @@
 
 #import <AVFoundation/AVFoundation.h>
 #import <Photos/Photos.h>
+@import MobileCoreServices;
 
 #import "YMSNavigationController.h"
+#import "YMSPhotoPickerViewController.h"
 
 @implementation UIViewController (YMSPhotoHelper)
 
-- (void)yms_presentCameraCaptureViewWithDelegate:(id<UIImagePickerControllerDelegate, UINavigationControllerDelegate>)delegate
+- (void)yms_presentCameraCaptureViewWithDelegate:(id<UIImagePickerControllerDelegate, UINavigationControllerDelegate>)delegate pickerSourceType:(YMSPhotoPickerSourceType)pickerSourceType
 {
     if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera]) {
         
@@ -24,6 +26,7 @@
             UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
             imagePickerController.delegate = delegate;
             imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+            imagePickerController.mediaTypes = [YMSPhotoPickerViewController availableMediaTypesFilteredByPickerSourceType:pickerSourceType];
             [self presentViewController:imagePickerController animated:YES completion:nil];
         }
         else if(status == AVAuthorizationStatusDenied
@@ -39,9 +42,12 @@
             [AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted) {
                 dispatch_async(dispatch_get_main_queue(), ^() {
                     if(granted){
+                        
                         UIImagePickerController *imagePickerController = [[UIImagePickerController alloc] init];
                         imagePickerController.delegate = delegate;
                         imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+                        imagePickerController.mediaTypes = [YMSPhotoPickerViewController availableMediaTypesFilteredByPickerSourceType:pickerSourceType];
+
                         [self presentViewController:imagePickerController animated:YES completion:nil];
                     }
                     else {
