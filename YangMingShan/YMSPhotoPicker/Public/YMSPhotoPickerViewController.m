@@ -796,7 +796,10 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
             fetchResult = [self.collectionItems firstObject][@"assets"];
             PHAsset *asset = [fetchResult firstObject];
             [self.selectedPhotos addObject:asset];
-            self.doneItem.enabled = YES;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.doneItem.enabled = YES;
+            });
         }
 
         return;
