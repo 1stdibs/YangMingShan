@@ -23,7 +23,8 @@
 static NSString * const YMSCameraCellNibName = @"YMSCameraCell";
 static NSString * const YMSPhotoCellNibName = @"YMSPhotoCell";
 static NSString * const YMSVideoCellNibName = @"YMSVideoCell";
-static const NSUInteger YMSNumberOfPhotoColumns = 3;
+static const NSUInteger YMSNumberOfPhotoColumnsCompact = 3;
+static const NSUInteger YMSNumberOfPhotoColumnsRegular = 4;
 static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 
 @interface YMSPhotoPickerViewController ()<UICollectionViewDataSource, UICollectionViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, PHPhotoLibraryChangeObserver>
@@ -49,7 +50,6 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 - (BOOL)allowsMultipleSelection;
 - (BOOL)canAddPhoto;
 - (IBAction)presentSinglePhoto:(id)sender;
-- (void)setupCellSize;
 
 @end
 
@@ -142,11 +142,11 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
     CGFloat minimumInteritemSpacing = layout.minimumInteritemSpacing;
     UIEdgeInsets sectionInset = layout.sectionInset;
     
-    CGFloat totalInteritemSpacing = MAX((YMSNumberOfPhotoColumns - 1), 0) * minimumInteritemSpacing;
+    CGFloat totalInteritemSpacing = MAX((YMSNumberOfPhotoColumnsCompact - 1), 0) * minimumInteritemSpacing;
     CGFloat totalHorizontalSpacing = totalInteritemSpacing + sectionInset.left + sectionInset.right;
     
     // Caculate size for portrait mode
-    CGFloat size = (CGFloat)floor((arrangementLength - totalHorizontalSpacing) / YMSNumberOfPhotoColumns);
+    CGFloat size = (CGFloat)floor((arrangementLength - totalHorizontalSpacing) / YMSNumberOfPhotoColumnsCompact);
     self.cellPortraitSize = CGSizeMake(size, size);
     
     // Caculate size for landsacpe mode
@@ -333,12 +333,21 @@ static const CGFloat YMSPhotoFetchScaleResizingRatio = 0.75;
 
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
+    NSUInteger numberOfPhotoColumns;
+    
+    UIUserInterfaceSizeClass hSizeClass = self.traitCollection.horizontalSizeClass;
+    UIUserInterfaceSizeClass vSizeClass = self.traitCollection.verticalSizeClass;
+    if (hSizeClass == UIUserInterfaceSizeClassCompact && vSizeClass == UIUserInterfaceSizeClassRegular) {
+        numberOfPhotoColumns = YMSNumberOfPhotoColumnsCompact;
+    } else {
+        numberOfPhotoColumns = YMSNumberOfPhotoColumnsRegular;
+    }
     
     UICollectionViewFlowLayout *layout = (UICollectionViewFlowLayout *)collectionViewLayout;
     CGFloat containerWidth = self.view.bounds.size.width;
     CGFloat inset = layout.sectionInset.left + layout.sectionInset.right;
-    CGFloat spacing = (YMSNumberOfPhotoColumns - 1) * layout.minimumInteritemSpacing;
-    CGFloat optimisedWidth = (containerWidth - spacing - inset) / YMSNumberOfPhotoColumns;
+    CGFloat spacing = (numberOfPhotoColumns - 1) * layout.minimumInteritemSpacing;
+    CGFloat optimisedWidth = (containerWidth - spacing - inset) / numberOfPhotoColumns;
     
     return CGSizeMake(optimisedWidth, optimisedWidth);
 }
